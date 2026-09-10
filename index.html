@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>منصة حجز المواعيد الطبية</title>
+<style>
+  :root{
+    --teal-900:#04342c; --teal-700:#0f6e56; --teal-600:#136b53; --teal-500:#1d9e75; --teal-100:#e1f5ee;
+    --amber-100:#faeeda; --amber-600:#ba7517; --amber-700:#854f0b;
+    --red-600:#a32d2d; --red-100:#fcebeb;
+    --bg:#faf8f4; --card:#ffffff; --text:#222220; --text-2:#6b6a63; --border:#e6e2d8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text); direction:rtl;
+    font-family:"Segoe UI","Tahoma",Arial,sans-serif;
+    padding-bottom:64px; -webkit-tap-highlight-color:transparent;
+  }
+  header.top{background:var(--teal-700);color:#fff;padding:18px 16px 16px;}
+  header.top h1{margin:0;font-size:19px;}
+  header.top p{margin:5px 0 0;font-size:12.5px;opacity:.88;}
+
+  nav.tabs{
+    position:fixed;bottom:0;left:0;right:0;display:flex;
+    background:#fff;border-top:1px solid var(--border);z-index:20;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .tab-btn{
+    flex:1;padding:10px 0 8px;text-align:center;background:none;border:none;
+    color:var(--text-2);font-size:11.5px;font-family:inherit;
+  }
+  .tab-btn .ic{display:block;font-size:19px;margin-bottom:2px;}
+  .tab-btn.active{color:var(--teal-700);font-weight:700;}
+
+  .screen{display:none;padding:14px 14px 20px;max-width:480px;margin:0 auto;}
+  .screen.active{display:block;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+  .card h3{margin:0 0 3px;font-size:15px;}
+  .card p.meta{margin:0;font-size:12.5px;color:var(--text-2);}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px;}
+  .chip{
+    padding:7px 14px;border-radius:999px;border:1px solid var(--border);
+    background:#fff;font-size:13px;color:var(--text);
+  }
+  .chip.selected{background:var(--teal-700);border-color:var(--teal-700);color:#fff;font-weight:600;}
+
+  .btn{
+    display:block;width:100%;padding:12px;border-radius:10px;border:none;
+    font-size:14.5px;font-weight:600;font-family:inherit;text-align:center;
+  }
+  .btn-primary{background:var(--teal-700);color:#fff;}
+  .btn-primary:active{background:var(--teal-900);}
+  .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text);}
+  .btn-sm{padding:8px 12px;font-size:12.5px;width:auto;border-radius:8px;}
+
+  .slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 14px;}
+  .slot{padding:10px 4px;border-radius:9px;border:1px solid var(--border);background:#fff;font-size:13px;text-align:center;}
+  .slot.selected{background:var(--amber-100);border-color:var(--amber-600);color:var(--amber-700);font-weight:700;}
+  .slot.taken{background:#f1efe8;color:#b4b2a9;text-decoration:line-through;}
+
+  label{display:block;font-size:12.5px;color:var(--text-2);margin:10px 0 4px;}
+  input[type=text],input[type=tel]{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;
+    font-size:14px;font-family:inherit;background:#fff;
+  }
+  .error{color:var(--red-600);font-size:12px;margin-top:4px;display:none;}
+
+  .step-back{background:none;border:none;color:var(--teal-700);font-size:13px;padding:0 0 10px;font-family:inherit;}
+
+  .success-box{text-align:center;padding:26px 10px 10px;}
+  .success-box .check{
+    width:56px;height:56px;border-radius:50%;background:var(--teal-100);color:var(--teal-700);
+    font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
+  }
+
+  h2.section{font-size:15px;color:var(--teal-900);margin:4px 0 10px;}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+  .badge-trial{background:var(--amber-100);color:var(--amber-700);}
+  .badge-active{background:var(--teal-100);color:var(--teal-700);}
+  .badge-inactive{background:var(--red-100);color:var(--red-600);}
+
+  select{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;
+    font-size:14px;font-family:inherit;background:#fff;
+  }
+
+  .chat-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  .chat-log{padding:12px;height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+  .msg{max-width:80%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5;}
+  .msg.bot{align-self:flex-start;background:var(--teal-100);color:var(--teal-900);border-bottom-left-radius:4px;}
+  .msg.user{align-self:flex-end;background:#eee;border-bottom-right-radius:4px;}
+  .msg.blocked{align-self:flex-start;background:var(--amber-100);color:var(--amber-700);border-bottom-left-radius:4px;}
+  .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);}
+  .chat-input input{flex:1;}
+  .quick-replies{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 10px;}
+  .qr-btn{padding:6px 11px;border-radius:999px;border:1px solid var(--teal-700);background:#fff;color:var(--teal-700);font-size:12px;font-family:inherit;}
+
+  .empty{text-align:center;color:var(--text-2);font-size:13px;padding:30px 10px;}
+  .note{font-size:11.5px;color:var(--text-2);background:#f1efe8;border-radius:9px;padding:8px 10px;margin-top:12px;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>منصة حجز المواعيد الطبية</h1>
+  <p>الجزائر العاصمة — حجز، متابعة، وبوت مساعد للعيادات</p>
+</header>
+
+<!-- شاشة: حجز موعد (المريض) -->
+<section class="screen active" id="screen-book">
+
+  <div id="book-step-specialty">
+    <h2 class="section">اختر التخصص</h2>
+    <div class="chip-row" id="specialty-chips"></div>
+  </div>
+
+  <div id="book-step-doctor" style="display:none;">
+    <button class="step-back" onclick="goToStep('specialty')">→ رجوع للتخصصات</button>
+    <h2 class="section">اختر الطبيب</h2>
+    <div id="doctor-list"></div>
+  </div>
+
+  <div id="book-step-slot" style="display:none;">
+    <button class="step-back" onclick="goToStep('doctor')">→ رجوع لقائمة الأطباء</button>
+    <h2 class="section" id="slot-doctor-name"></h2>
+    <div class="chip-row" id="day-chips"></div>
+    <div class="slot-grid" id="slot-grid"></div>
+  </div>
+
+  <div id="book-step-form" style="display:none;">
+    <button class="step-back" onclick="goToStep('slot')">→ رجوع للأوقات</button>
+    <h2 class="section">بياناتك</h2>
+    <div class="card">
+      <label>الاسم الكامل</label>
+      <input type="text" id="patient-name" placeholder="مثال: أحمد بن علي">
+      <div class="error" id="err-name">الرجاء إدخال الاسم</div>
+      <label>رقم الهاتف</label>
+      <input type="tel" id="patient-phone" placeholder="0555 00 00 00">
+      <div class="error" id="err-phone">الرجاء إدخال رقم هاتف صحيح</div>
+    </div>
+    <button class="btn btn-primary" onclick="confirmBooking()">تأكيد الحجز</button>
+  </div>
+
+  <div id="book-step-success" style="display:none;">
+    <div class="success-box">
+      <div class="check">✓</div>
+      <h3 style="margin:0 0 6px;">تم تأكيد موعدك</h3>
+      <p class="meta" id="success-summary"></p>
+      <button class="btn btn-primary" style="margin-top:18px;" onclick="resetBooking()">حجز موعد آخر</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- شاشة: مساحة الطبيب -->
+<section class="screen" id="screen-doctor">
+  <h2 class="section">مساحة الطبيب</h2>
+  <label>اختر عيادتك</label>
+  <select id="doctor-select" onchange="renderDoctorPanel()"></select>
+
+  <div id="doctor-panel"></div>
+</section>
+
+<!-- شاشة: البوت -->
+<section class="screen" id="screen-chat">
+  <h2 class="section">تجربة بوت الحجز</h2>
+  <p class="meta" style="margin:-4px 0 10px;">محاكاة لكيفية رد البوت على المريض — بما فيها حدوده الآمنة</p>
+  <div class="chat-wrap">
+    <div class="chat-log" id="chat-log"></div>
+    <div class="quick-replies" id="chat-quick"></div>
+    <div class="chat-input">
+      <input type="text" id="chat-input" placeholder="اكتب رسالتك...">
+      <button class="btn btn-primary btn-sm" onclick="sendChat()">إرسال</button>
+    </div>
+  </div>
+  <p class="note">هذا نموذج توضيحي يشتغل بالكامل داخل المتصفح (بدون اتصال حقيقي بذكاء اصطناعي بعد) — لكن منطق الحماية (guardrail) نفس المنطق المستخدم في الكود الخلفي الحقيقي.</p>
+</section>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-screen="book" onclick="switchTab('book')">
+    <span class="ic">📅</span>حجز موعد
+  </button>
+  <button class="tab-btn" data-screen="doctor" onclick="switchTab('doctor')">
+    <span class="ic">🩺</span>مساحة الطبيب
+  </button>
+  <button class="tab-btn" data-screen="chat" onclick="switchTab('chat')">
+    <span class="ic">💬</span>تجربة البوت
+  </button>
+</nav>
+
+<script>
+/* ================= البيانات الأولية (Seed) ================= */
+const SEED_DOCTORS = [
+  {id:'d1', name:'د. نادية ولد موسى', specialty:'طب عام', area:'الأشور', phone:'0550531164'},
+  {id:'d2', name:'عيادة الصحة الشاملة', specialty:'طب عام', area:'بئر خادم', phone:'0550062511'},
+  {id:'d3', name:'د. بوزغوب وبوزار', specialty:'أسنان', area:'المرادية', phone:'0557525464'},
+  {id:'d4', name:'د. دنتوفال', specialty:'أسنان', area:'الأبيار', phone:'0549310043'},
+  {id:'d5', name:'د. ماوس إبراهيم', specialty:'أطفال', area:'بئر مراد رايس', phone:'0660122488'},
+  {id:'d6', name:'د. بن لشهب سميح', specialty:'أطفال', area:'القبة', phone:'0657116206'},
+  {id:'d7', name:'د. أوغليس', specialty:'نساء وتوليد', area:'الأبيار', phone:'0202795 75'},
+  {id:'d8', name:'د. مجدوب زهية', specialty:'نساء وتوليد', area:'باب الوادي', phone:'0560536754'},
+  {id:'d9', name:'كارديو لايف', specialty:'قلب', area:'بن عكنون', phone:'0656145586'},
+  {id:'d10', name:'د. ساطوف', specialty:'جلدية', area:'القبة', phone:'0770434107'},
+];
+const SLOT_TIMES = ['09:00','09:30','10:00','10:30','14:00','14:30','15:00','15:30'];
+
+/* ================= التخزين المحلي ================= */
+function loadData(){
+  return {
+    doctors: JSON.parse(localStorage.getItem('rdv_doctors') || 'null') || SEED_DOCTORS.map(d=>({...d, subscription:'trial', trialEnds:addDays(todayISO(),30)})),
+    appointments: JSON.parse(localStorage.getItem('rdv_appointments') || '[]')
+  };
+}
+function saveData(data){
+  localStorage.setItem('rdv_doctors', JSON.stringify(data.doctors));
+  localStorage.setItem('rdv_appointments', JSON.stringify(data.appointments));
+}
+let DATA = loadData();
+
+/* ================= أدوات تاريخ ================= */
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function addDays(iso,n){ const d=new Date(iso); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function dayLabel(iso){
+  const days=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const d=new Date(iso);
+  return days[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+}
+
+/* ================= التبويبات ================= */
+function switchTab(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.screen===name));
+  if(name==='doctor') renderDoctorSelect();
+  if(name==='chat' && chatLog.length===0) botSay('مرحبا! أنا مساعد الحجز. تحب تحجز موعد؟', ['بغيت نحجز موعد']);
+}
+
+/* ================= خطوات الحجز ================= */
+let bookingState = { specialty:null, doctorId:null, day:null, time:null };
+
+function goToStep(step){
+  ['specialty','doctor','slot','form','success'].forEach(s=>{
+    document.getElementById('book-step-'+s).style.display = (s===step) ? 'block' : 'none';
+  });
+}
+
+function renderSpecialties(){
+  const specs = [...new Set(DATA.doctors.map(d=>d.specialty))];
+  const wrap = document.getElementById('specialty-chips');
+  wrap.innerHTML = specs.map(s=>`<button class="chip" onclick="selectSpecialty('${s}')">${s}</button>`).join('');
+}
+
+function selectSpecialty(spec){
+  bookingState.specialty = spec;
+  document.querySelectorAll('#specialty-chips .chip').forEach(c=>c.classList.toggle('selected', c.textContent===spec));
+  const list = DATA.doctors.filter(d=>d.specialty===spec);
+  document.getElementById('doctor-list').innerHTML = list.map(d=>`
+    <div class="card">
+      <div class="row">
+        <div>
+          <h3>${d.name}</h3>
+          <p class="meta">${d.area} · ${d.phone}</p>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="selectDoctor('${d.id}')">اختيار</button>
+      </div>
+    </div>`).join('');
+  goToStep('doctor');
+}
+
+function selectDoctor(id){
+  bookingState.doctorId = id;
+  const d = DATA.doctors.find(x=>x.id===id);
+  document.getElementById('slot-doctor-name').textContent = 'موعد مع ' + d.name;
+  renderDays();
+  goToStep('slot');
+}
+
+function renderDays(){
+  const wrap = document.getElementById('day-chips');
+  let html='';
+  for(let i=0;i<5;i++){
+    const iso = addDays(todayISO(), i);
+    html += `<button class="chip" onclick="selectDay('${iso}')">${i===0?'اليوم':dayLabel(iso)}</button>`;
+  }
+  wrap.innerHTML = html;
+  selectDay(todayISO());
+}
+
+function selectDay(iso){
+  bookingState.day = iso;
+  document.querySelectorAll('#day-chips .chip').forEach((c,idx)=>{
+    c.classList.toggle('selected', addDays(todayISO(),idx)===iso);
+  });
+  const taken = DATA.appointments
+    .filter(a=>a.doctorId===bookingState.doctorId && a.date===iso && a.status!=='cancelled')
+    .map(a=>a.time);
+  document.getElementById('slot-grid').innerHTML = SLOT_TIMES.map(t=>{
+    const isTaken = taken.includes(t);
+    return `<button class="slot ${isTaken?'taken':''}" ${isTaken?'disabled':''} onclick="selectSlot('${t}')">${t}</button>`;
+  }).join('');
+}
+
+function selectSlot(t){
+  bookingState.time = t;
+  document.querySelectorAll('#slot-grid .slot').forEach(s=>s.classList.toggle('selected', s.textContent===t));
+  goToStep('form');
+}
+
+function confirmBooking(){
+  const name = document.getElementById('patient-name').value.trim();
+  const phone = document.getElementById('patient-phone').value.trim();
+  let ok = true;
+  document.getElementById('err-name').style.display = name ? 'none':'block';
+  document.getElementById('err-phone').style.display = (phone.length>=9) ? 'none':'block';
+  if(!name){ ok=false; }
+  if(phone.length<9){ ok=false; }
+  if(!ok) return;
+
+  const appt = {
+    id:'a'+Date.now(), doctorId:bookingState.doctorId, patientName:name, patientPhone:phone,
+    date:bookingState.day, time:bookingState.time, status:'confirmed', createdAt:new Date().toISOString()
+  };
+  DATA.appointments.push(appt);
+  saveData(DATA);
+
+  const d = DATA.doctors.find(x=>x.id===bookingState.doctorId);
+  document.getElementById('success-summary').textContent =
+    `${d.name} — ${dayLabel(bookingState.day)} الساعة ${bookingState.time}`;
+  goToStep('success');
+}
+
+function resetBooking(){
+  bookingState = { specialty:null, doctorId:null, day:null, time:null };
+  document.getElementById('patient-name').value='';
+  document.getElementById('patient-phone').value='';
+  goToStep('specialty');
+}
+
+/* ================= مساحة الطبيب ================= */
+function renderDoctorSelect(){
+  const sel = document.getElementById('doctor-select');
+  sel.innerHTML = DATA.doctors.map(d=>`<option value="${d.id}">${d.name} — ${d.specialty}</option>`).join('');
+  renderDoctorPanel();
+}
+
+function renderDoctorPanel(){
+  const id = document.getElementById('doctor-select').value;
+  const d = DATA.doctors.find(x=>x.id===id);
+  const appts = DATA.appointments.filter(a=>a.doctorId===id && a.status!=='cancelled')
+    .sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+
+  let badge = '';
+  if(d.subscription==='trial') badge = `<span class="badge badge-trial">شهر مجاني حتى ${d.trialEnds}</span>`;
+  else if(d.subscription==='active') badge = `<span class="badge badge-active">اشتراك مفعّل</span>`;
+  else badge = `<span class="badge badge-inactive">غير مفعّل</span>`;
+
+  let apptsHtml = appts.length ? appts.map(a=>`
+    <div class="card">
+      <div class="row">
+        <div>
+          <h3>${a.patientName}</h3>
+          <p class="meta">${dayLabel(a.date)} · ${a.time} · ${a.patientPhone}</p>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="cancelAppt('${a.id}')">إلغاء</button>
+      </div>
+    </div>`).join('') : `<div class="empty">لا توجد مواعيد محجوزة بعد</div>`;
+
+  document.getElementById('doctor-panel').innerHTML = `
+    <div class="card">
+      <div class="row"><h3>${d.name}</h3>${badge}</div>
+      <p class="meta">${d.specialty} · ${d.area}</p>
+    </div>
+    <div class="card">
+      <p class="meta" style="margin-bottom:8px;">حالة الاشتراك</p>
+      <div class="row" style="gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="setSubscription('${d.id}','active')">تفعيل الاشتراك (تم الدفع)</button>
+        <button class="btn btn-outline btn-sm" onclick="setSubscription('${d.id}','inactive')">تعطيل</button>
+      </div>
+    </div>
+    <h2 class="section" style="margin-top:16px;">المواعيد القادمة</h2>
+    ${apptsHtml}
+  `;
+}
+
+function setSubscription(id, status){
+  const d = DATA.doctors.find(x=>x.id===id);
+  d.subscription = status;
+  saveData(DATA);
+  renderDoctorPanel();
+}
+
+function cancelAppt(id){
+  const a = DATA.appointments.find(x=>x.id===id);
+  if(a) a.status='cancelled';
+  saveData(DATA);
+  renderDoctorPanel();
+  if(document.getElementById('screen-book').classList.contains('active')) selectDay(bookingState.day);
+}
+
+/* ================= تجربة البوت + Guardrail ================= */
+const MEDICAL_KEYWORDS = ['دواء','أدوية','جرعة','علاج','تشخيص','أعراض','مرض','وصفة','حساسية','التهاب','ألم','حمى','صداع','مضاد حيوي'];
+const EMERGENCY_KEYWORDS = ['نزيف','صعوبة تنفس','ألم صدر','فقدان وعي','اختناق'];
+const SAFE_REPLY_MEDICAL = 'هذا سؤال يحتاج تقييم الطبيب مباشرة. يمكنني حجز موعد لك للاستشارة، أو الاتصال بالعيادة مباشرة.';
+const SAFE_REPLY_EMERGENCY = 'هذا يبدو كحالة استعجال. يرجى الاتصال فوراً بالإسعاف على 14 أو 15.';
+
+let chatLog = [];
+function botSay(text, quickReplies){
+  chatLog.push({role:'bot', text});
+  renderChat(quickReplies||[]);
+}
+function userSay(text){
+  chatLog.push({role:'user', text});
+  renderChat([]);
+}
+function blockedSay(text){
+  chatLog.push({role:'blocked', text});
+  renderChat([]);
+}
+function renderChat(quickReplies){
+  const log = document.getElementById('chat-log');
+  log.innerHTML = chatLog.map(m=>`<div class="msg ${m.role}">${m.text}</div>`).join('');
+  log.scrollTop = log.scrollHeight;
+  document.getElementById('chat-quick').innerHTML = (quickReplies||[])
+    .map(q=>`<button class="qr-btn" onclick="quickReply('${q}')">${q}</button>`).join('');
+}
+function quickReply(text){
+  document.getElementById('chat-input').value = text;
+  sendChat();
+}
+
+function checkGuardrail(text){
+  const lower = text.toLowerCase();
+  if(EMERGENCY_KEYWORDS.some(k=>lower.includes(k))) return {blocked:true, reply:SAFE_REPLY_EMERGENCY};
+  if(MEDICAL_KEYWORDS.some(k=>lower.includes(k))) return {blocked:true, reply:SAFE_REPLY_MEDICAL};
+  return {blocked:false};
+}
+
+let chatFlow = {step:0};
+function sendChat(){
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value='';
+  userSay(text);
+
+  const check = checkGuardrail(text);
+  if(check.blocked){
+    setTimeout(()=>blockedSay(check.reply), 300);
+    return;
+  }
+
+  setTimeout(()=>{
+    if(text.includes('حجز')){
+      chatFlow.step = 1;
+      botSay('تمام! في أي تخصص تحب تحجز؟', ['طب عام','أسنان','أطفال']);
+    } else if(chatFlow.step===1){
+      chatFlow.step = 2;
+      botSay('اختر وقت مناسب: غدا 10:00، غدا 15:30، أو بعد غد 09:00', ['غدا 10:00','غدا 15:30']);
+    } else if(chatFlow.step===2){
+      chatFlow.step = 0;
+      botSay('تم تأكيد موعدك ✓ — سنرسل لك تذكير قبل الموعد. (هذا رد تجريبي داخل المحاكاة)');
+    } else {
+      botSay('يمكنني مساعدتك في حجز موعد أو الإجابة عن أوقات العمل والعنوان. تحب نبدأ حجز؟', ['بغيت نحجز موعد']);
+    }
+  }, 400);
+}
+document.getElementById('chat-input').addEventListener('keydown', e=>{ if(e.key==='Enter') sendChat(); });
+
+/* ================= بدء التشغيل ================= */
+renderSpecialties();
+</script>
+</body>
+</html>
